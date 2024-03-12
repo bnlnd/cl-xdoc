@@ -1,0 +1,54 @@
+xdoc: map over XML documents
+
+Define a tree of functions and call them as you parse an XML document.
+
+Example:
+
+<database>
+  <name>Finances</name>
+  <row id="0">
+    <ledger type="withdrawal" value="100"/>
+    <ledger type="deposit" value="51"/>
+  </row>
+<database>
+
+(xdoc:define-document db.xml
+  (:name "database"
+   :children ((:name "name"
+               :text get-db-name))
+              (:name "row"
+               :entry create-new-row
+ 	       :children ((:name "ledger"
+ 	                   :whole add-ledger-data))
+	       :exit submit-all-data)))
+
+(mapdoc doc.xml #p"~/data/db.xml")
+
+Functions take two arguments: the parsed thing and a list of ancestor tags.
+:whole (element history)
+:text (string history)
+:entry :exit (tag history)
+
+Symbols:
+element: A whole XML element as parsed by :WHOLE or read-document-*.
+tag: A token representing the name an attributes of an element.
+
+(read-document-file path): Parse entire document as an element class.
+(read-document-stream stream): Read and parse from the stream.
+(define-document name tree): Macro that validates and defparameters a
+                             map tree.
+(mapdoc tree source): Map over the document depth-first and call the functions
+                      as specified by the tags. When source is a stream, read.
+		      When it's a pathname, open a file stream and read.
+(name elt)
+(children elt)
+(attributes elt)
+	    Accessors for elements/tags. Tags do not have children. Attributes
+	    are an alist of (name . value) fashion.
+(attr name elt): Get the first attribute with name name, or nil if there are
+                 none.
+(find-child name elt): Find the first child of elt with name name. Get the first
+                       text content when name = :text.
+(find-element name elt): Depth-first search the entire document for the first
+                         tag with name name.
+(text name elt): Get the text content of the child with name name.
