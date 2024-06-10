@@ -126,7 +126,7 @@
     (expect-char #\= in)
     (let ((delim (get-char in)))
       (unless (find delim #(#\" #\'))
-	(error 'malformed :in in))
+	(emsg in "Malformed attributes list"))
       (let ((value (get-value delim in)))
 	(discard 1 in)
 	(whitespace in)
