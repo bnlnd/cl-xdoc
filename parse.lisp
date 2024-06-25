@@ -123,7 +123,9 @@
 
 (defun get-attribute (in)
   (let ((name (get-name in)))
+    (whitespace in)
     (expect-char #\= in)
+    (whitespace in)
     (let ((delim (get-char in)))
       (unless (find delim #(#\" #\'))
 	(emsg in "Malformed attributes list"))
