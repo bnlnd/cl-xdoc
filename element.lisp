@@ -1,7 +1,7 @@
 (cl:in-package :xdoc)
 
 (defclass tag ()
-  ((name :type cons
+  ((name :type string
 	 :initarg :name
 	 :reader name)))
 
@@ -17,19 +17,12 @@
 
 (defclass element (elt-tag)
   ((children :type list
-	    :initform nil
-	    :initarg :children
-	    :accessor children)))
+	     :initform nil
+	     :initarg :children
+	     :accessor children)))
 
-(defun parse-name (name)
-  (let ((sep (position #\: name)))
-    (cond ((null sep)
-	   (cons nil name))
-	  ((zerop sep)
-	   (cons nil (subseq name 1)))
-	  (t
-	   (cons (subseq name 0 sep)
-		 (subseq name (1+ sep)))))))
+(defmethod name ((object string)) :text)
+(defmethod children ((object string)) nil)
 
 (defun attr (name elt)
   "Get the value of the first attribute of ELT with name NAME."
@@ -37,22 +30,21 @@
 	      :test #'string=)))
 
 (defun find-child (name elt)
-  "Get the first child of ELT with name NAME, or the first text content if NAME = :TEXT."
-  (do ((list (children elt) (cdr list)))
-      ((cond ((endp list) t)
-	     ((eq :text name) (stringp (car list)))
-	     (t (and (typep (car list) 'tag)
-		     (string= name (name (car list))))))
-       (car list))))
+  "Find the first child with name NAME, or text when NAME = :TEXT."
+  (find name (children elt) :key #'name :test 'equal))
 
 (defun find-element (name elt)
   "A depth-first search of the entire ELT for a tag with name NAME."
-  (dolist (child (children elt))
-    (unless (stringp child)
-      (let ((e? (find-element name child)))
-	(when e? (return e?))))))
+  (if (equal name (name elt))
+      elt
+      (dolist (child (children elt))
+       	(let ((elt? (find-element name child)))
+	  (when elt? (return elt?))))))
+
+(defun find-all-children (name elt)
+  "Make a list of all children with name NAME, or text when NAME = :TEXT."
+  (remove name (children elt) :key #'name :test-not 'equal))
 
 (defun text (name elt)
   "<foo><bar>hello</bar></foo> => \"hello\""
   (find-child :text (find-child name elt)))
-

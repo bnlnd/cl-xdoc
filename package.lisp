@@ -15,4 +15,5 @@
 	   #:attr
 	   #:find-child
 	   #:find-element
+	   #:find-all-children
 	   #:text))
